@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-api
+  namespace: marketly
+  labels:
+    app: checkout-api
+    tier: api
+  annotations:
+    sentinel.io/repo: "marketly-org/checkout-api"
+    sentinel.io/branch: "main"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: checkout-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: checkout-api
+        tier: api
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/marketly-org/checkout-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: CHECKOUT_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: marketly-db-credentials
+                  key: checkout-url
+            - name: CHECKOUT_PAYMENTS_API_URL
+              value: "http://payments-api.marketly.svc.cluster.local:8080"
+            - name: CHECKOUT_INVENTORY_API_URL
+              value: "http://inventory-api.marketly.svc.cluster.local:8080"
+            - name: CHECKOUT_SHIPPING_API_URL
+              value: "http://shipping-api.marketly.svc.cluster.local:8080"
+            - name: CHECKOUT_LOG_LEVEL
+              value: "info"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
