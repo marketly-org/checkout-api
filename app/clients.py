@@ -27,7 +27,7 @@ class InventoryClient:
         # inventory-api calls to it (for stock confirmation) pile up too.
         # The real fix is to set an explicit, shorter timeout so we fail
         # fast and don't exhaust our connection pool.
-        self._client = httpx.Client()
+        self._client = httpx.Client(timeout=10.0)
 
     def reserve(self, sku: str, quantity: int) -> dict:
         """Reserve stock for an item. Raises httpx.HTTPError on failure."""
@@ -64,7 +64,7 @@ class PaymentsClient:
         # Same issue as InventoryClient — no explicit timeout. When the
         # payments-api is slow (Stripe rate limiting), these calls block
         # indefinitely, exhausting the checkout-api's thread pool.
-        self._client = httpx.Client()
+        self._client = httpx.Client(timeout=10.0)
 
     def charge(self, amount_cents: int, customer_email: str, order_id: str) -> dict:
         """Charge a customer. Returns the payment_id."""
@@ -88,7 +88,7 @@ class ShippingClient:
 
     def __init__(self) -> None:
         self._base_url = settings.shipping_api_url
-        self._client = httpx.Client()
+        self._client = httpx.Client(timeout=10.0)
 
     def quote(self, address: str, items: list[CheckoutItem]) -> dict:
         """Get a shipping quote for an order."""
