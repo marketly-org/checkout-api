@@ -17,20 +17,7 @@ from app.config import settings
 from app.models import CheckoutItem
 
 
-class InventoryClient:
-    """Client for the inventory-api service."""
-
-    def __init__(self) -> None:
-        self._base_url = settings.inventory_api_url
-        # NOTE: httpx.Client with no timeout uses the default 5s. But we're
-        # using httpx.Client() without any timeout= kwarg, which means it
-        # falls back to httpx's default (5s connect + 5s read). That should
-        # be fine for normal operation, but when payments-api gets rate-
-        # limited by Stripe and starts holding connections open, the
-        # inventory-api calls to it (for stock confirmation) pile up too.
-        # The real fix is to set an explicit, shorter timeout so we fail
-        # fast and don't exhaust our connection pool.
-        self._client = httpx.Client()
+        self._client = httpx.Client(timeout=5)
 
     def reserve(self, sku: str, quantity: int) -> dict:
         """Reserve stock for an item. Raises httpx.HTTPError on failure."""
