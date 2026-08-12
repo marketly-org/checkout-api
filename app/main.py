@@ -23,7 +23,6 @@ from app.models import CheckoutRequest, CheckoutResponse, HealthResponse, Order,
 
 logger = structlog.get_logger()
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup + shutdown lifecycle."""
@@ -34,7 +33,6 @@ async def lifespan(app: FastAPI):
     await close_pool()
     logger.info("checkout-api stopped")
 
-
 app = FastAPI(
     title="checkout-api",
     description="Checkout service for the Marketly e-commerce platform.",
@@ -42,11 +40,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
     return HealthResponse()
-
 
 @app.get("/ready")
 async def ready() -> dict:
@@ -61,7 +57,6 @@ async def ready() -> dict:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={"status": "not_ready", "error": str(e)},
         )
-
 
 @app.post("/checkout", response_model=CheckoutResponse, status_code=status.HTTP_201_CREATED)
 async def checkout(req: CheckoutRequest) -> CheckoutResponse:
@@ -169,7 +164,6 @@ async def checkout(req: CheckoutRequest) -> CheckoutResponse:
         inventory.close()
         payments.close()
         shipping.close()
-
 
 @app.get("/orders/{order_id}", response_model=CheckoutResponse)
 async def get_order(order_id: UUID) -> CheckoutResponse:

@@ -1,7 +1,6 @@
 """Pytest configuration + shared fixtures."""
 import pytest
 
-
 class AsyncMock:
     """Minimal async mock for methods that return awaitables."""
 
@@ -12,7 +11,6 @@ class AsyncMock:
         async def _():
             return self.return_value
         return _().__await__()
-
 
 @pytest.fixture
 def mock_async():

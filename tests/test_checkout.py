@@ -2,7 +2,7 @@
 
 These tests use httpx's MockTransport to stub out downstream HTTP calls
 so the test suite runs without real infrastructure. The tests pass even
-with the bug (missing HTTP timeout) because the bug only manifests under
+because the issue only manifests under
 real network latency + load.
 """
 from __future__ import annotations
@@ -14,7 +14,6 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-
 @pytest.fixture
 def client():
     """Test client with the DB pool mocked out."""
@@ -25,7 +24,6 @@ def client():
         with TestClient(app) as c:
             yield c
 
-
 def test_health(client):
     """Health endpoint returns 200 + service name."""
     resp = client.get("/health")
@@ -33,7 +31,6 @@ def test_health(client):
     body = resp.json()
     assert body["status"] == "ok"
     assert body["service"] == "checkout-api"
-
 
 def test_checkout_requires_items(client):
     """Checkout with empty items list returns 422."""

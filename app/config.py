@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from pydantic_settings import BaseSettings
 
-
 class Settings(BaseSettings):
     # Database
     database_url: str = "postgresql://marketly:marketly@localhost:5432/checkout"
@@ -28,6 +27,5 @@ class Settings(BaseSettings):
     log_level: str = "info"
 
     model_config = {"env_prefix": "CHECKOUT_", "env_file": ".env"}
-
 
 settings = Settings()

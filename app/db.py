@@ -10,7 +10,6 @@ from app.config import settings
 
 _pool: asyncpg.Pool | None = None
 
-
 async def init_pool() -> None:
     """Create the connection pool. Called once on app startup."""
     global _pool
@@ -21,7 +20,6 @@ async def init_pool() -> None:
         command_timeout=5,
     )
 
-
 async def close_pool() -> None:
     """Close the pool. Called once on app shutdown."""
     global _pool
@@ -29,13 +27,11 @@ async def close_pool() -> None:
         await _pool.close()
         _pool = None
 
-
 def get_pool() -> asyncpg.Pool:
     """Return the current pool. Raises if init_pool hasn't been called."""
     if _pool is None:
         raise RuntimeError("database pool not initialized — call init_pool() first")
     return _pool
-
 
 async def init_schema() -> None:
     """Create the orders table if it doesn't exist. Idempotent."""
