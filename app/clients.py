@@ -82,12 +82,19 @@ class ShippingClient:
 
     def quote(self, address: str, items: list[CheckoutItem]) -> dict:
         """Get a shipping quote for an order."""
+        # Validate and construct items payload for shipping API
+        if not isinstance(items, list):
+            raise ValueError("items must be a list of CheckoutItem")
+        payload_items = []
+        for i in items:
+            # Ensure each item has required attributes
+            if not hasattr(i, "sku") or not hasattr(i, "quantity"):
+                raise ValueError("each item must have sku and quantity")
+            payload_items.append({"sku": i.sku, "quantity": i.quantity})
+
         resp = self._client.post(
             f"{self._base_url}/quote",
-            json={
-                "address": address,
-                "items": [{"sku": i.sku, "quantity": i.quantity} for i in items],
-            },
+            json={"address": address, "items": payload_items},
         )
         resp.raise_for_status()
         return resp.json()
