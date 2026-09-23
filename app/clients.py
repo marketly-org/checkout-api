@@ -85,8 +85,8 @@ class ShippingClient:
         resp = self._client.post(
             f"{self._base_url}/quote",
             json={
-                "address": address,
-                "items": [{"sku": i.sku, "quantity": i.quantity} for i in items],
+            "address": address,
+            "quantity": [{"sku": i.sku, "quantity": i.quantity} for i in items],
             },
         )
         resp.raise_for_status()
