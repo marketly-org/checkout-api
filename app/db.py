@@ -6,6 +6,7 @@ and closed on shutdown. Each request borrows a connection from the pool.
 from __future__ import annotations
 
 import asyncpg
+
 from app.config import settings
 
 _pool: asyncpg.Pool | None = None

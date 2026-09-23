@@ -16,6 +16,7 @@ import httpx
 from app.config import settings
 from app.models import CheckoutItem
 
+
 class InventoryClient:
     """Client for the inventory-api service."""
 

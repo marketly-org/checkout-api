@@ -7,12 +7,11 @@ real network latency + load.
 """
 from __future__ import annotations
 
-import json
 from unittest.mock import patch
 
-import httpx
 import pytest
 from fastapi.testclient import TestClient
+
 
 @pytest.fixture
 def client():
@@ -20,9 +19,11 @@ def client():
     from app.main import app
 
     with patch("app.db.get_pool") as mock_pool:
-        mock_pool.return_value.acquire.return_value.__aenter__.return_value.execute = pytest.mock_async
+        conn = mock_pool.return_value.acquire.return_value.__aenter__.return_value
+        conn.execute = pytest.mock_async
         with TestClient(app) as c:
             yield c
+
 
 def test_health(client):
     """Health endpoint returns 200 + service name."""

@@ -1,6 +1,7 @@
 """Pytest configuration + shared fixtures."""
 import pytest
 
+
 class AsyncMock:
     """Minimal async mock for methods that return awaitables."""
 

@@ -1,10 +1,11 @@
 """Pydantic models for request and response bodies."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, EmailStr, Field
+
 
 class CheckoutItem(BaseModel):
     sku: str = Field(..., min_length=1, max_length=64)
@@ -28,7 +29,7 @@ class Order(BaseModel):
     shipping_cents: int
     total_cents: int
     status: str = "confirmed"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 class CheckoutResponse(BaseModel):
     order: Order
