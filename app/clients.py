@@ -5,9 +5,7 @@ The checkout-api talks to three downstream services:
   - payments-api: charge the customer
   - shipping-api: get a shipping quote + tracking number
 
-All three are called synchronously during checkout. If any of them is slow,
-the checkout request blocks until the downstream responds (or the TCP
-connection times out at the OS level, which is ~2 minutes on Linux).
+All three are called synchronously during checkout.
 """
 from __future__ import annotations
 
@@ -22,12 +20,6 @@ class InventoryClient:
 
     def __init__(self) -> None:
         self._base_url = settings.inventory_api_url
-        # NOTE: httpx.Client with no timeout uses the default 5s. But we're
-        # be fine for normal operation, but when payments-api gets rate-
-        # limited by Stripe and starts holding connections open, the
-        # inventory-api calls to it (for stock confirmation) pile up too.
-        # The real fix is to set an explicit, shorter timeout so we fail
-        # fast and don't exhaust our connection pool.
         self._client = httpx.Client()
 
     def reserve(self, sku: str, quantity: int) -> dict:
@@ -62,9 +54,6 @@ class PaymentsClient:
 
     def __init__(self) -> None:
         self._base_url = settings.payments_api_url
-        # Same issue as InventoryClient — no explicit timeout. When the
-        # payments-api is slow (Stripe rate limiting), these calls block
-        # indefinitely, exhausting the checkout-api's thread pool.
         self._client = httpx.Client()
 
     def charge(self, amount_cents: int, customer_email: str, order_id: str) -> dict:
