@@ -15,10 +15,19 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture
 def client():
-    """Test client with the DB pool mocked out."""
+    """Test client with the DB layer mocked out.
+
+    main.py imports init_pool/init_schema/close_pool/get_pool from app.db
+    into its own namespace, so we patch them where they are USED
+    (app.main) — otherwise the lifespan would open a real asyncpg pool
+    and the handlers would use unmocked references.
+    """
     from app.main import app
 
-    with patch("app.db.get_pool") as mock_pool:
+    with patch("app.main.init_pool"), \
+         patch("app.main.init_schema"), \
+         patch("app.main.close_pool"), \
+         patch("app.main.get_pool") as mock_pool:
         conn = mock_pool.return_value.acquire.return_value.__aenter__.return_value
         conn.execute = pytest.mock_async
         with TestClient(app) as c:
