@@ -13,6 +13,7 @@ from contextlib import asynccontextmanager
 from uuid import UUID
 
 import structlog
+import httpx
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 
@@ -154,6 +155,18 @@ async def checkout(req: CheckoutRequest) -> CheckoutResponse:
             tracking_number=order.tracking_number,
         )
 
+    except httpx.HTTPStatusError as e:
+        logger.error("checkout failed", error=str(e), customer=req.customer_email)
+        if e.response.status_code == 400:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"shipping quote failed: {e.response.text}",
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"checkout failed: {e}",
+            )
     except Exception as e:
         logger.error("checkout failed", error=str(e), customer=req.customer_email)
         raise HTTPException(
