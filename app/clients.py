@@ -82,12 +82,14 @@ class ShippingClient:
 
     def quote(self, address: str, items: list[CheckoutItem]) -> dict:
         """Get a shipping quote for an order."""
+        # Build the request payload with the correct field name expected by the shipping API.
+        payload = {
+            "address": address,
+            "items": [{"sku": i.sku, "quantity": i.quantity} for i in items],
+        }
         resp = self._client.post(
             f"{self._base_url}/quote",
-            json={
-                "address": address,
-                "items": [{"sku": i.sku, "quantity": i.quantity} for i in items],
-            },
+            json=payload,
         )
         resp.raise_for_status()
         return resp.json()
