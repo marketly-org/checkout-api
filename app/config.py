@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     shipping_api_url: str = "http://shipping-api.marketly.svc.cluster.local:8080"
 
     # HTTP client
-    connect_timeout: float = 10.0
+    connect_timeout: float = 30.0
     read_timeout: float = 5.0
 
     # Server
