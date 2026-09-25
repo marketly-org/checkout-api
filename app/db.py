@@ -19,6 +19,7 @@ async def init_pool() -> None:
         min_size=2,
         max_size=10,
         command_timeout=5,
+        connect_timeout=settings.connect_timeout,
     )
 
 async def close_pool() -> None:
