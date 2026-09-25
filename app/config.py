@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # HTTP client
     connect_timeout: float = 30.0
-    read_timeout: float = 5.0
+    read_timeout: float = 30.0
 
     # Server
     host: str = "0.0.0.0"
