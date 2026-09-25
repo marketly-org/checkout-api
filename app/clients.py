@@ -22,7 +22,8 @@ class InventoryClient:
         self._base_url = settings.inventory_api_url
         # Inventory API sometimes takes longer than 2 seconds, causing httpx.ReadTimeout.
         # Increase read timeout specifically for InventoryClient to 5.0 seconds.
-        self._client = httpx.Client(timeout=httpx.Timeout(connect=settings.connect_timeout, read=5.0))
+        # The connect timeout also needs to be increased as the global default (2.0s) is too short.
+        self._client = httpx.Client(timeout=httpx.Timeout(connect=5.0, read=5.0))
 
     def reserve(self, sku: str, quantity: int) -> dict:
         """Reserve stock for an item. Raises httpx.HTTPError on failure."""
