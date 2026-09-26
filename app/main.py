@@ -31,8 +31,16 @@ async def lifespan(app: FastAPI):
     """Startup + shutdown lifecycle."""
     await init_pool()
     await init_schema()
+    app.state.inventory_client = InventoryClient()
+    app.state.payments_client = PaymentsClient()
+    app.state.shipping_client = ShippingClient()
+
     logger.info("checkout-api started", port=settings.port)
     yield
+
+    app.state.inventory_client.close()
+    app.state.payments_client.close()
+    app.state.shipping_client.close()
     await close_pool()
     logger.info("checkout-api stopped")
 
@@ -90,9 +98,9 @@ async def checkout(req: CheckoutRequest) -> CheckoutResponse:
     """
     logger.info("checkout started", customer=req.customer_email, items=len(req.items))
 
-    inventory = InventoryClient()
-    payments = PaymentsClient()
-    shipping = ShippingClient()
+    inventory = app.state.inventory_client
+    payments = app.state.payments_client
+    shipping = app.state.shipping_client
 
     try:
         # 1. Reserve stock + collect prices.
