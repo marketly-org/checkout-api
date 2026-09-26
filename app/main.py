@@ -9,6 +9,7 @@ GET  /orders/{id} — fetch an order by ID.
 from __future__ import annotations
 
 import json
+import signal
 from contextlib import asynccontextmanager
 from uuid import UUID
 
@@ -41,6 +42,21 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+def _handle_shutdown(signum: int, frame) -> None:
+    """Handle SIGTERM/SIGINT gracefully without calling sys.exit().
+
+    Instead of terminating immediately, we trigger the FastAPI lifespan
+    shutdown so in-flight checkout requests can complete and the DB pool
+    closes cleanly.
+    """
+    logger.info("Received SIGTERM, exiting.")
+    # Raising KeyboardInterrupt lets uvicorn/FastAPI perform the graceful
+    # lifespan shutdown (close_pool, etc.) instead of an abrupt exit.
+    raise KeyboardInterrupt()
+
+signal.signal(signal.SIGTERM, _handle_shutdown)
+signal.signal(signal.SIGINT, _handle_shutdown)
 
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
