@@ -9,7 +9,6 @@ GET  /orders/{id} — fetch an order by ID.
 from __future__ import annotations
 
 import json
-import signal
 from contextlib import asynccontextmanager
 from uuid import UUID
 
@@ -23,24 +22,14 @@ from app.db import close_pool, get_pool, init_pool, init_schema
 from app.models import CheckoutRequest, CheckoutResponse, HealthResponse, Order, OrderItem
 
 logger = structlog.get_logger()
-# Compatibility alias for legacy log_error_level method
-logger.log_error_level = logger.error  # type: ignore[attr-defined]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup + shutdown lifecycle."""
     await init_pool()
     await init_schema()
-    app.state.inventory_client = InventoryClient()
-    app.state.payments_client = PaymentsClient()
-    app.state.shipping_client = ShippingClient()
-
     logger.info("checkout-api started", port=settings.port)
     yield
-
-    app.state.inventory_client.close()
-    app.state.payments_client.close()
-    app.state.shipping_client.close()
     await close_pool()
     logger.info("checkout-api stopped")
 
@@ -50,21 +39,6 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
-
-def _handle_shutdown(signum: int, frame) -> None:
-    """Handle SIGTERM/SIGINT gracefully without calling sys.exit().
-
-    Instead of terminating immediately, we trigger the FastAPI lifespan
-    shutdown so in-flight checkout requests can complete and the DB pool
-    closes cleanly.
-    """
-    logger.info("Received SIGTERM, exiting.")
-    # Raising KeyboardInterrupt lets uvicorn/FastAPI perform the graceful
-    # lifespan shutdown (close_pool, etc.) instead of an abrupt exit.
-    raise KeyboardInterrupt()
-
-signal.signal(signal.SIGTERM, _handle_shutdown)
-signal.signal(signal.SIGINT, _handle_shutdown)
 
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
@@ -98,9 +72,9 @@ async def checkout(req: CheckoutRequest) -> CheckoutResponse:
     """
     logger.info("checkout started", customer=req.customer_email, items=len(req.items))
 
-    inventory = app.state.inventory_client
-    payments = app.state.payments_client
-    shipping = app.state.shipping_client
+    inventory = InventoryClient()
+    payments = PaymentsClient()
+    shipping = ShippingClient()
 
     try:
         # 1. Reserve stock + collect prices.
