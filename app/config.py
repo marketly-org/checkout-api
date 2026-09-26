@@ -7,6 +7,7 @@ extra config in the cluster.
 from __future__ import annotations
 
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -26,6 +27,14 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8080
     log_level: str = "info"
+
+    @field_validator("log_level")
+    @classmethod
+    def validate_log_level(cls, v: str) -> str:
+        allowed = {"debug", "info", "warning", "error", "critical"}
+        if v.lower() not in allowed:
+            return "info"
+        return v.lower()
 
     model_config = {"env_prefix": "CHECKOUT_", "env_file": ".env"}
 
