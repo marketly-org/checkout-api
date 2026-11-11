@@ -72,9 +72,9 @@ async def checkout(req: CheckoutRequest) -> CheckoutResponse:
     """
     logger.info("checkout started", customer=req.customer_email, items=len(req.items))
 
-    inventory = InventoryClient()
-    payments = PaymentsClient()
-    shipping = ShippingClient()
+    inventory = app.state.inventory_client
+    payments = app.state.payments_client
+    shipping = app.state.shipping_client
 
     try:
         # 1. Reserve stock + collect prices.
