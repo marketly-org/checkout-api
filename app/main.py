@@ -22,6 +22,8 @@ from app.db import close_pool, get_pool, init_pool, init_schema
 from app.models import CheckoutRequest, CheckoutResponse, HealthResponse, Order, OrderItem
 
 logger = structlog.get_logger()
+# Compatibility alias for legacy log_error_level method
+logger.log_error_level = logger.error  # type: ignore[attr-defined]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
